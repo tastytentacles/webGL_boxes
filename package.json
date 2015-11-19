@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "fuck IDK",
+  "main": "test.js",
+  "dependencies": {
+    "jquery": "^2.1.4",
+    "tern": "^0.16.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
