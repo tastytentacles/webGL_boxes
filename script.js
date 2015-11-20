@@ -167,50 +167,60 @@ function init() {
 		ent_stack.push(ent);
 	}
 
-	var confet = new simp_ent(0, 0);
-	confet.scale = 0.4;
-	confet.frame = [24, 25, 26];
-	confet.state = 0;
-	confet.time_stamp = 
-	confet.render = function() {
-		gl.bindTexture(gl.TEXTURE_2D, tex3);
+	for (var n = 0; n < 100; n++) {
+		var confet = new simp_ent(0, 0);
+		confet.scale = 0.4;
+		confet.frame = [24, 25, 26];
+		confet.state = 0;
+		confet.speed = {
+			x: Math.random() * 0.05 - 0.025,
+			y: Math.random() * 0.05 + 0.01
+		};
+		confet.time_stamp = Math.round(Math.random() * 2);
+		confet.render = function() {
+			gl.bindTexture(gl.TEXTURE_2D, tex3);
 
-		var frame = get_xy(this.frame[this.state], 8);
-		frame.x *= tile_data.w;
-		frame.y *= tile_data.h;
+			var frame = get_xy(this.frame[this.state], 8);
+			frame.x *= tile_data.w;
+			frame.y *= tile_data.h;
 
-		var temp_cords = [
-			frame.x + tile_data.w, frame.y,
-			frame.x, frame.y,
-			frame.x, frame.y + tile_data.h,
-			frame.x + tile_data.w, frame.y + tile_data.h
-		];
+			var temp_cords = [
+				frame.x + tile_data.w, frame.y,
+				frame.x, frame.y,
+				frame.x, frame.y + tile_data.h,
+				frame.x + tile_data.w, frame.y + tile_data.h
+			];
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-		gl.uniform1f(prog.scale, this.scale);
+			gl.uniform1f(prog.scale, this.scale);
 
-		gl.uniform3fv(prog.pos, new Float32Array([
-			this.x,
-			this.y,
-			0.0,
-		]));
+			gl.uniform3fv(prog.pos, new Float32Array([
+				this.x,
+				this.y,
+				0.0,
+			]));
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-		gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
-		gl.bindBuffer(gl.ARRAY_BUFFER, null);
-	}
-	confet.logic = function() {
-		console.log(this.time_stamp);
-
-		if (this.time_stamp != new Date().getSeconds()) {
-			this.time_stamp = new Date().getSeconds();
-			this.state = Math.round(Math.random() * 2);
+			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		}
+		confet.logic = function() {
+			if (this.time_stamp != new Date().getSeconds()) {
+				this.time_stamp = new Date().getSeconds();
+				this.state = Math.round(Math.random() * 2);
+			}
+
+			if (this.y > -2) {
+				this.speed.y -= 0.0005;
+				this.y += this.speed.y;
+				this.x += this.speed.x;
+			}
+		}
+		ent_stack.push(confet);
 	}
-	ent_stack.push(confet);
 
 	var wall = new simp_ent(0, 0);
 	wall.scale = 0.25;
