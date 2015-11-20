@@ -1,18 +1,6 @@
 // Load the http module to create an http server.
 var http = require('http');
 var fs = require('fs');
-var jq = require("jquery");
-var ns = require("node-static");
-var util = require("util");
-var dispatcher = require('httpdispatcher');
-
-
-var file = new(ns.Server)(".", { 
-	cache: 600, 
-	headers: { 'X-Powered-By': 'node-static' } 
-});
-
-dispatcher.setStatic('resources');
 
 // Configure our HTTP server to respond with Hello World to all requests.
 var server = http.createServer(function (request, response) {
