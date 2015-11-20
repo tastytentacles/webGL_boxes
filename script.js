@@ -79,11 +79,8 @@ function init() {
 
 	prog.col = gl.getUniformLocation(prog, "col");
 
-	tex = gl.createTexture();
-	new_img(tex, "/ast/check.png");
-
-	// tex2 = gl.createTexture();
-	// new_img(tex2, "/ast/wall.png");	
+	// tex = gl.createTexture();
+	// new_img(tex, "/ast/check.png");
 
 	tex3 = gl.createTexture();
 	new_img(tex3, "/ast/tile.gif");	
@@ -103,7 +100,8 @@ function init() {
 	// game logic bits
 	for (var n = 0; n < 3; n++) {
 		var ent = new simp_ent(-0.5 + 0.5 * n, -0.5);
-		ent.scale = 0.4
+		ent.scale = 0.4;
+		ent.first_open = false;
 		ent.frame = [
 			{top: 2, bot: 10},
 			{top: 3, bot: 11}
@@ -164,62 +162,19 @@ function init() {
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
 			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		}
+		ent.logic = function() {
+			if (this.state == 1 && !this.first_open) {
+				for (var n = 0; n < 16; n++) {
+					add_partical(this.x, this.y + 0.03);
+				}
+				this.first_open = true;
+			}
+		}
 		ent_stack.push(ent);
 	}
 
-	for (var n = 0; n < 100; n++) {
-		var confet = new simp_ent(0, 0);
-		confet.scale = 0.4;
-		confet.frame = [24, 25, 26];
-		confet.state = 0;
-		confet.speed = {
-			x: Math.random() * 0.05 - 0.025,
-			y: Math.random() * 0.05 + 0.01
-		};
-		confet.time_stamp = Math.round(Math.random() * 2);
-		confet.render = function() {
-			gl.bindTexture(gl.TEXTURE_2D, tex3);
+	for (var n = 0; n < 16; n++) {
 
-			var frame = get_xy(this.frame[this.state], 8);
-			frame.x *= tile_data.w;
-			frame.y *= tile_data.h;
-
-			var temp_cords = [
-				frame.x + tile_data.w, frame.y,
-				frame.x, frame.y,
-				frame.x, frame.y + tile_data.h,
-				frame.x + tile_data.w, frame.y + tile_data.h
-			];
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-			gl.uniform1f(prog.scale, this.scale);
-
-			gl.uniform3fv(prog.pos, new Float32Array([
-				this.x,
-				this.y,
-				0.0,
-			]));
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-		}
-		confet.logic = function() {
-			if (this.time_stamp != new Date().getSeconds()) {
-				this.time_stamp = new Date().getSeconds();
-				this.state = Math.round(Math.random() * 2);
-			}
-
-			if (this.y > -2) {
-				this.speed.y -= 0.0005;
-				this.y += this.speed.y;
-				this.x += this.speed.x;
-			}
-		}
-		ent_stack.push(confet);
 	}
 
 	var wall = new simp_ent(0, 0);
@@ -275,9 +230,6 @@ function init() {
 
 function logic_loop() {
 	for(var n = 0; n < ent_stack.length; n++) {
-		// if (ent_stack[n].state != null) {
-		// 	ent_stack[n].state = Math.round(Math.random());
-		// }
 		ent_stack[n].logic();
 	}
 }
@@ -303,14 +255,21 @@ function render_loop() {
 	gl.enable(gl.DEPTH_TEST);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	gl.uniform4fv(prog.col, new Float32Array([
-		Math.random(),
-		Math.random(),
-		Math.random(),
-		1.0
-	]));
+	// gl.uniform4fv(prog.col, new Float32Array([
+	// 	Math.random(),
+	// 	Math.random(),
+	// 	Math.random(),
+	// 	1.0
+	// ]));
 
 	for (var n = 0; n < ent_stack.length; n++) {
+		if (ent_stack[n].colour != null) {
+			gl.uniform4fv(prog.col, new Float32Array(ent_stack[n].colour));
+		}
+		else {
+			gl.uniform4fv(prog.col, new Float32Array([1.0, 1.0, 1.0, 1.0]));
+		}
+
 		ent_stack[n].render();
 	}
 }
