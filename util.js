@@ -2,7 +2,24 @@ function simp_ent(_x, _y) {
 	this.x = _x;
 	this.y = _y;
 
+	this.scale = 0.1;
+
+	this.tick = 0;
+	this.logic = null;
 	this.render = null;
+}
+
+function get_xy(index, width) {
+	var n = {x: 0, y: 0};
+	n.y = Math.floor(index / width);
+	n.x = index - n.y * width;
+	return n;
+}
+
+function new_img(texture, src){
+	var img = new Image();
+	img.onload = function() {image_init(img, texture)};
+	img.src = src;
 }
 
 function image_init(image, texture) {

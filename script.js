@@ -1,19 +1,17 @@
-var screen = {x:60, y:24};
 var screen_buff = [];
 var prog = null;
 var gl = null;
 var c = null;
 
 var planet_stack = [];
-// var p = [];
 var ent_stack = [];
 
 var vert_buff = null;
 var vert = [
-	1.0, 1.0, 0.0,
-	-1.0, 1.0, 0.0,
-	-1.0, -1.0, 0.0,
-	1.0, -1.0, 0.0
+	0.5, 0.5, 0.0,
+	-0.5, 0.5, 0.0,
+	-0.5, -0.5, 0.0,
+	0.5, -0.5, 0.0
 ];
 
 var tex_cord_buff = null;
@@ -25,6 +23,13 @@ var tex_cords = [
 ];
 
 var tex = null;
+var tex2 = null;
+var tex3 = null;
+
+var tile_data = {
+	w: 0.125,
+	h: 0.125
+};
 
 function init() {
 	c = document.getElementById("myCanvas");
@@ -59,13 +64,13 @@ function init() {
 
 	vert_buff = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.STATIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.DYNAMIC_DRAW);
 	gl.vertexAttribPointer(prog.vec, 3, gl.FLOAT, false, 0, 0);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	tex_cord_buff = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tex_cords), gl.STATIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tex_cords), gl.DYNAMIC_DRAW);
 	gl.vertexAttribPointer(prog.tex_cords, 2, gl.FLOAT, false, 0, 0);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -75,10 +80,13 @@ function init() {
 	prog.col = gl.getUniformLocation(prog, "col");
 
 	tex = gl.createTexture();
-	// var img = document.getElementById("check");
-	var img = new Image();
-	img.src = "ast/check.png";
-	img.onload = function() {image_init(img, tex)};
+	new_img(tex, "/ast/check.png");
+
+	tex2 = gl.createTexture();
+	new_img(tex2, "/ast/wall.png");	
+
+	tex3 = gl.createTexture();
+	new_img(tex3, "/ast/tile.gif");	
 
 	//enable alpha blending
 	gl.enable(gl.BLEND);
@@ -95,8 +103,15 @@ function init() {
 	// game logic bits
 	for (var n = 0; n < 3; n++) {
 		ent = new simp_ent(-0.5 + 0.5 * n, -0.4);
+		ent.scale = 0.4
 		ent.render = function() {
-			gl.uniform1f(prog.scale, 0.1);
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tex_cords), gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+			gl.uniform1f(prog.scale, this.scale);
 
 			gl.uniform3fv(prog.pos, new Float32Array([
 				this.x,
@@ -110,19 +125,63 @@ function init() {
 		}
 		ent_stack.push(ent);
 	}
+
+	var wall = new simp_ent(0, 0);
+	wall.scale = 0.25;
+	wall.data = [
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		9, 9, 9, 9, 9, 9, 9, 9,
+		9, 9, 9, 9, 9, 9, 9, 9
+	];
+	wall.render = function() {
+		gl.bindTexture(gl.TEXTURE_2D, tex3);
+
+		for (var n = 0; n < wall.data.length; n++) {
+			var tile = get_xy(n, 8);
+			var subtile = get_xy(this.data[n], 8);
+			subtile.x *= tile_data.w;
+			subtile.y *= tile_data.h;
+
+			console.log(tile);
+
+			var temp_cords = [
+				subtile.x + tile_data.w, subtile.y,
+				subtile.x, subtile.y,
+				subtile.x, subtile.y + tile_data.h,
+				subtile.x + tile_data.w, subtile.y + tile_data.h
+			];
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+			gl.uniform1f(prog.scale, this.scale);
+
+			gl.uniform3fv(prog.pos, new Float32Array([
+				tile.x * this.scale - 3.5 * this.scale,
+				-tile.y * this.scale + 3.5 * this.scale,
+				0.1,
+			]));
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+		}
+	}
+	ent_stack.push(wall);
 	// game logic bits
 
 	render_loop();
 }
 
 function logic_loop() {
-	// for(var n = 0; n < p.length; n++) {
-
-	// }
-
 	for(var n = 0; n < ent_stack.length; n++) {
-		// ent_stack[n].render();
-		// console.log(n);
+
 	}
 }
 
@@ -147,15 +206,17 @@ function render_loop() {
 	gl.enable(gl.DEPTH_TEST);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	gl.bindTexture(gl.TEXTURE_2D, tex);
-
-	gl.uniform4fv(prog.col, new Float32Array([
-		Math.random(),
-		Math.random(),
-		Math.random(),
-		1.0
-	]));
+	// gl.uniform4fv(prog.col, new Float32Array([
+	// 	Math.random(),
+	// 	Math.random(),
+	// 	Math.random(),
+	// 	1.0
+	// ]));
 	
+	gl.uniform4fv(prog.col, new Float32Array([
+		1.0, 1.0, 1.0, 1.0
+	]));
+
 	for (var n = 0; n < ent_stack.length; n++) {
 		ent_stack[n].render();
 	}
