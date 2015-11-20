@@ -33,7 +33,8 @@ varying vec2 v_tex_cords;
 
 void main(void) {
 	// gl_FragColor = col;
-	vec4 tex = texture2D(tex0, v_tex_cords) * col;
+	// vec4 tex = texture2D(tex0, v_tex_cords) * col;
+	vec4 tex = texture2D(tex0, v_tex_cords);
 
 	if (tex.a > 0.5) {
 		gl_FragColor = tex;

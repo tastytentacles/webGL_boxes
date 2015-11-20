@@ -5,8 +5,8 @@ function simp_ent(_x, _y) {
 	this.scale = 0.1;
 
 	this.tick = 0;
-	this.logic = null;
-	this.render = null;
+	this.logic = function() {};
+	this.render = function() {};
 }
 
 function get_xy(index, width) {

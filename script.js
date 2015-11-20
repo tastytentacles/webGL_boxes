@@ -82,8 +82,8 @@ function init() {
 	tex = gl.createTexture();
 	new_img(tex, "/ast/check.png");
 
-	tex2 = gl.createTexture();
-	new_img(tex2, "/ast/wall.png");	
+	// tex2 = gl.createTexture();
+	// new_img(tex2, "/ast/wall.png");	
 
 	tex3 = gl.createTexture();
 	new_img(tex3, "/ast/tile.gif");	
@@ -102,13 +102,24 @@ function init() {
 
 	// game logic bits
 	for (var n = 0; n < 3; n++) {
-		ent = new simp_ent(-0.5 + 0.5 * n, -0.4);
+		var ent = new simp_ent(-0.5 + 0.5 * n, -0.4);
 		ent.scale = 0.4
 		ent.render = function() {
-			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.bindTexture(gl.TEXTURE_2D, tex3);
+
+			var frame = get_xy(2, 8);
+			frame.x *= tile_data.w;
+			frame.y *= tile_data.h;
+
+			var temp_cords = [
+				frame.x + tile_data.w, frame.y,
+				frame.x, frame.y,
+				frame.x, frame.y + tile_data.h,
+				frame.x + tile_data.w, frame.y + tile_data.h
+			];
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tex_cords), gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
 			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 			gl.uniform1f(prog.scale, this.scale);
@@ -147,7 +158,7 @@ function init() {
 			subtile.x *= tile_data.w;
 			subtile.y *= tile_data.h;
 
-			console.log(tile);
+			// console.log(tile);
 
 			var temp_cords = [
 				subtile.x + tile_data.w, subtile.y,
@@ -206,15 +217,11 @@ function render_loop() {
 	gl.enable(gl.DEPTH_TEST);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	// gl.uniform4fv(prog.col, new Float32Array([
-	// 	Math.random(),
-	// 	Math.random(),
-	// 	Math.random(),
-	// 	1.0
-	// ]));
-	
 	gl.uniform4fv(prog.col, new Float32Array([
-		1.0, 1.0, 1.0, 1.0
+		Math.random(),
+		Math.random(),
+		Math.random(),
+		1.0
 	]));
 
 	for (var n = 0; n < ent_stack.length; n++) {
