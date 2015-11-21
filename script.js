@@ -31,7 +31,11 @@ var tile_data = {
 	h: 0.125
 };
 
-var m = {x: 0.0, y: 0.0};
+var m = {
+	x: 0.0,
+	y: 0.0,
+	down: false
+};
 
 function init() {
 	c = document.getElementById("myCanvas");
@@ -105,6 +109,9 @@ function init() {
 		m.y = 1 - evt.clientY / 256;
 	});
 
+	c.addEventListener('mousedown', function(evt) {m.down = true;});
+	c.addEventListener('mouseup', function(evt) {m.down = false;});
+
 	for (var n = 0; n < 3; n++) {
 		var ent = new simp_ent(-0.5 + 0.5 * n, -0.5);
 		ent.scale = 0.4;
@@ -171,10 +178,11 @@ function init() {
 			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		}
 		ent.logic = function() {
-			if (m.x < this.x + 0.25 &&
-				m.x > this.x - 0.25 &&
-				m.y < this.y + 0.5 &&
-				m.y > this.y - 0.25) {
+			if (m.x < this.x + 0.5 * this.scale &&
+				m.x > this.x - 0.5 * this.scale &&
+				m.y < this.y + 0.5 * this.scale &&
+				m.y > this.y - 0.5 * this.scale &&
+				m.down) {
 				this.state = 1;
 			}
 
