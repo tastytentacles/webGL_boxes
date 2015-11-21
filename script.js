@@ -31,14 +31,10 @@ var tile_data = {
 	h: 0.125
 };
 
-var m = {
-	x: 0.0,
-	y: 0.0,
-	down: false
-};
 
 function init() {
 	c = document.getElementById("myCanvas");
+	io_init(c);
 	var wgl = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
 	for (var n = 0; n < wgl.length; ++n) {
 		try { gl = c.getContext(wgl[n]); }
@@ -104,16 +100,8 @@ function init() {
 	gl.depthFunc(gl.LEQUAL);
 
 	// game logic bits
-	c.addEventListener('mousemove', function(evt) {
-		m.x = evt.clientX / 256 - 1;
-		m.y = 1 - evt.clientY / 256;
-	});
-
-	c.addEventListener('mousedown', function(evt) {m.down = true;});
-	c.addEventListener('mouseup', function(evt) {m.down = false;});
-
 	for (var n = 0; n < 3; n++) {
-		var ent = new simp_ent(-0.5 + 0.5 * n, -0.5);
+		var ent = new simp_ent(-0.59 + 0.6 * n, -0.6);
 		ent.scale = 0.4;
 		ent.first_open = false;
 		ent.frame = [
@@ -180,10 +168,15 @@ function init() {
 		ent.logic = function() {
 			if (m.x < this.x + 0.5 * this.scale &&
 				m.x > this.x - 0.5 * this.scale &&
-				m.y < this.y + 0.5 * this.scale &&
+				m.y < this.y + 0.75 * this.scale &&
 				m.y > this.y - 0.5 * this.scale &&
-				m.down) {
+				this.state == 0 && m.down) {
 				this.state = 1;
+
+				// sfx = sfx_cash.cloneNode(true);
+				sfx = new Audio("ast/open.wav");
+				sfx.volume = 0.2;
+				sfx.play();
 			}
 
 			if (this.state == 1 && !this.first_open) {
