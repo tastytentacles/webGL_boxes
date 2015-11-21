@@ -31,6 +31,8 @@ var tile_data = {
 	h: 0.125
 };
 
+var game_stage = 0;
+
 
 function init() {
 	c = document.getElementById("myCanvas");
@@ -100,83 +102,91 @@ function init() {
 	gl.depthFunc(gl.LEQUAL);
 
 	// game logic bits
+	var true_box = Math.round(Math.random() * 2);
+
 	for (var n = 0; n < 3; n++) {
 		var ent = new simp_ent(-0.59 + 0.6 * n, -0.6);
 		ent.scale = 0.4;
-		ent.first_open = false;
+		if (n == true_box) {ent.first_open = false;}
+		else {ent.first_open = true;}
+		ent.time_stamp = new Date().getSeconds();
+		ent.show_blink = false;
 		ent.frame = [
-			{top: 2, bot: 10},
-			{top: 3, bot: 11}
+			[10, 2, 17],
+			[11, 3, 17]
 		];
 		// ent.state = Math.round(Math.random());
 		ent.state = 0;
 		ent.render = function() {
 			gl.bindTexture(gl.TEXTURE_2D, tex3);
 
-			var frame = get_xy(this.frame[this.state].bot, 8);
-			frame.x *= tile_data.w;
-			frame.y *= tile_data.h;
+			for (var nn = 0; nn < 3; nn++) {
+				if ((this.show_blink && !this.first_open) || nn < 2) {
+					var frame = get_xy(this.frame[this.state][nn], 8);
+					frame.x *= tile_data.w;
+					frame.y *= tile_data.h;
 
-			var temp_cords = [
-				frame.x + tile_data.w, frame.y,
-				frame.x, frame.y,
-				frame.x, frame.y + tile_data.h,
-				frame.x + tile_data.w, frame.y + tile_data.h
-			];
+					var temp_cords = [
+						frame.x + tile_data.w, frame.y,
+						frame.x, frame.y,
+						frame.x, frame.y + tile_data.h,
+						frame.x + tile_data.w, frame.y + tile_data.h
+					];
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+					gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
+					gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-			gl.uniform1f(prog.scale, this.scale);
+					gl.uniform1f(prog.scale, this.scale);
 
-			gl.uniform3fv(prog.pos, new Float32Array([
-				this.x,
-				this.y,
-				0.0,
-			]));
+					gl.uniform3fv(prog.pos, new Float32Array([
+						this.x,
+						this.y + (1 * this.scale) * nn,
+						0.0,
+					]));
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-			frame = get_xy(this.frame[this.state].top, 8);
-			frame.x *= tile_data.w;
-			frame.y *= tile_data.h;
-
-			var temp_cords = [
-				frame.x + tile_data.w, frame.y,
-				frame.x, frame.y,
-				frame.x, frame.y + tile_data.h,
-				frame.x + tile_data.w, frame.y + tile_data.h
-			];
-
-			gl.uniform3fv(prog.pos, new Float32Array([
-				this.x,
-				this.y + 1 * this.scale,
-				0.0,
-			]));
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+					gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
+					gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
+					gl.bindBuffer(gl.ARRAY_BUFFER, null);
+				}
+			}
 		}
 		ent.logic = function() {
-			if (m.x < this.x + 0.5 * this.scale &&
-				m.x > this.x - 0.5 * this.scale &&
-				m.y < this.y + 0.75 * this.scale &&
-				m.y > this.y - 0.5 * this.scale &&
-				this.state == 0 && m.down) {
-				this.state = 1;
+			switch(game_stage){
+				case 0:
+					if (this.time_stamp != new Date().getSeconds()) {
+						if (this.show_blink) {
+							this.show_blink = false;
+						}
+						else {
+							this.show_blink = true;
+						}
+						this.time_stamp = new Date().getSeconds();
+					}
 
-				// sfx = sfx_cash.cloneNode(true);
-				sfx = new Audio("ast/open.wav");
-				sfx.volume = 0.2;
-				sfx.play();
+					if (m.down) {
+						this.show_blink = false;
+						game_stage = 1;
+					}
+					break;
+
+				case 1:
+					if (m.x < this.x + 0.5 * this.scale &&
+						m.x > this.x - 0.5 * this.scale &&
+						m.y < this.y + 0.75 * this.scale &&
+						m.y > this.y - 0.5 * this.scale &&
+						this.state == 0 && m.down) {
+						this.state = 1;
+
+						// sfx = sfx_cash.cloneNode(true);
+						sfx = new Audio("ast/open.wav");
+						sfx.volume = 0.2;
+						sfx.play();
+					}
+					break;
+
+				default:
+					break;
 			}
 
 			if (this.state == 1 && !this.first_open) {
@@ -268,13 +278,6 @@ function render_loop() {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	// gl.uniform4fv(prog.col, new Float32Array([
-	// 	Math.random(),
-	// 	Math.random(),
-	// 	Math.random(),
-	// 	1.0
-	// ]));
 
 	for (var n = 0; n < ent_stack.length; n++) {
 		if (ent_stack[n].colour != null) {
