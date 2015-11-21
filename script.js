@@ -31,6 +31,8 @@ var tile_data = {
 	h: 0.125
 };
 
+var m = {x: 0.0, y: 0.0};
+
 function init() {
 	c = document.getElementById("myCanvas");
 	var wgl = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
@@ -98,6 +100,11 @@ function init() {
 	gl.depthFunc(gl.LEQUAL);
 
 	// game logic bits
+	c.addEventListener('mousemove', function(evt) {
+		m.x = evt.clientX / 256 - 1;
+		m.y = 1 - evt.clientY / 256;
+	});
+
 	for (var n = 0; n < 3; n++) {
 		var ent = new simp_ent(-0.5 + 0.5 * n, -0.5);
 		ent.scale = 0.4;
@@ -106,7 +113,8 @@ function init() {
 			{top: 2, bot: 10},
 			{top: 3, bot: 11}
 		];
-		ent.state = Math.round(Math.random());
+		// ent.state = Math.round(Math.random());
+		ent.state = 0;
 		ent.render = function() {
 			gl.bindTexture(gl.TEXTURE_2D, tex3);
 
@@ -163,6 +171,13 @@ function init() {
 			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		}
 		ent.logic = function() {
+			if (m.x < this.x + 0.25 &&
+				m.x > this.x - 0.25 &&
+				m.y < this.y + 0.5 &&
+				m.y > this.y - 0.25) {
+				this.state = 1;
+			}
+
 			if (this.state == 1 && !this.first_open) {
 				for (var n = 0; n < 16; n++) {
 					add_partical(this.x, this.y + 0.03);
@@ -171,10 +186,6 @@ function init() {
 			}
 		}
 		ent_stack.push(ent);
-	}
-
-	for (var n = 0; n < 16; n++) {
-
 	}
 
 	var wall = new simp_ent(0, 0);
@@ -229,6 +240,8 @@ function init() {
 }
 
 function logic_loop() {
+	// console.log(event.clientX + " :: " + event.clientY);
+
 	for(var n = 0; n < ent_stack.length; n++) {
 		ent_stack[n].logic();
 	}
