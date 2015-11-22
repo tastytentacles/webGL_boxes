@@ -9,6 +9,16 @@ function simp_ent(_x, _y) {
 	this.render = function() {};
 }
 
+function find_boxs() {
+	var box_stack = [];
+	for (var n = 0; n < ent_stack.length; n++) {
+		if (ent_stack[n].first_open != null) {
+			box_stack.push(n);
+		}
+	}
+	return box_stack;
+}
+
 function add_partical(_x, _y) {
 	var confet = new simp_ent(
 		_x + Math.random() * 0.2 - 0.1, 

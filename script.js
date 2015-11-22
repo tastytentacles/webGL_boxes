@@ -31,6 +31,10 @@ var tile_data = {
 	h: 0.125
 };
 
+var box_a = null;
+var box_b = null;
+var reshuffle = true;
+var shuffle_count = 10;
 var game_stage = 0;
 
 
@@ -83,9 +87,6 @@ function init() {
 
 	prog.col = gl.getUniformLocation(prog, "col");
 
-	// tex = gl.createTexture();
-	// new_img(tex, "/ast/check.png");
-
 	tex3 = gl.createTexture();
 	new_img(tex3, "/ast/tile.gif");	
 
@@ -112,10 +113,11 @@ function init() {
 		ent.time_stamp = new Date().getSeconds();
 		ent.show_blink = false;
 		ent.frame = [
-			[10, 2, 17],
-			[11, 3, 17]
+			[10, 2, 18],
+			[11, 3, 18]
 		];
-		// ent.state = Math.round(Math.random());
+		ent.target_point = {x: -0.59 + 0.6 * n, y: -0.6};
+		ent.found_target = false;
 		ent.state = 0;
 		ent.render = function() {
 			gl.bindTexture(gl.TEXTURE_2D, tex3);
@@ -163,14 +165,19 @@ function init() {
 						}
 						this.time_stamp = new Date().getSeconds();
 					}
-
-					if (m.down) {
-						this.show_blink = false;
-						game_stage = 1;
-					}
 					break;
 
 				case 1:
+					this.show_blink = false;
+
+					this.x += (this.target_point.x - this.x) / 6;
+
+					if (this.target_point.x - this.x < 0.001) {
+						this.found_target = true;
+					}
+					break;
+
+				case 2:
 					if (m.x < this.x + 0.5 * this.scale &&
 						m.x > this.x - 0.5 * this.scale &&
 						m.y < this.y + 0.75 * this.scale &&
@@ -178,10 +185,19 @@ function init() {
 						this.state == 0 && m.down) {
 						this.state = 1;
 
-						// sfx = sfx_cash.cloneNode(true);
-						sfx = new Audio("ast/open.wav");
-						sfx.volume = 0.2;
-						sfx.play();
+						if (!this.first_open) {
+							sfx = new Audio("ast/open_win.wav");
+							sfx2 = new Audio("ast/open.wav");
+							sfx.volume = 0.5;
+							sfx2.volume = 0.2;
+							sfx.play();
+							sfx2.play();
+						}
+						else {
+							sfx = new Audio("ast/open.wav");
+							sfx.volume = 0.2;
+							sfx.play();
+						}
 					}
 					break;
 
@@ -251,7 +267,47 @@ function init() {
 }
 
 function logic_loop() {
-	// console.log(event.clientX + " :: " + event.clientY);
+	switch(game_stage){
+		case 0:
+			if (m.down) {
+				game_stage = 1;
+			}
+			break;
+
+		case 1:
+			if (reshuffle) {
+				reshuffle = false;
+				shuffle_count -= 1;
+				var box_sweep = find_boxs();
+				box_a = box_sweep[Math.round(Math.random() * 2)];
+				box_b = box_sweep[Math.round(Math.random() * 2)];
+				
+				while (box_a == box_b && box_a != null) {
+					box_b = box_sweep[Math.round(Math.random() * 2)];
+				}
+
+				ent_stack[box_a].target_point.x = ent_stack[box_b].x;
+				ent_stack[box_a].found_target = false;
+
+				ent_stack[box_b].target_point.x = ent_stack[box_a].x;
+				ent_stack[box_b].found_target = false;
+			}
+
+			if (ent_stack[box_a].found_target && ent_stack[box_b].found_target) {
+				if (shuffle_count == 0) {
+					game_stage = 2;
+				}
+				else {
+					reshuffle = true;
+				}
+			}
+			break;
+
+		default:
+			break;
+	}
+
+	
 
 	for(var n = 0; n < ent_stack.length; n++) {
 		ent_stack[n].logic();
