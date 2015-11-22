@@ -215,9 +215,7 @@ function init() {
 		ent_stack.push(ent);
 	}
 
-	var wall = new simp_ent(0, 0);
-	wall.scale = 0.25;
-	wall.data = [
+	add_tile([
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1,
@@ -226,42 +224,18 @@ function init() {
 		0, 0, 0, 0, 0, 0, 0, 0,
 		9, 9, 9, 9, 9, 9, 9, 9,
 		9, 9, 9, 9, 9, 9, 9, 9
-	];
-	wall.render = function() {
-		gl.bindTexture(gl.TEXTURE_2D, tex3);
+	], 0.2);
 
-		for (var n = 0; n < wall.data.length; n++) {
-			var tile = get_xy(n, 8);
-			var subtile = get_xy(this.data[n], 8);
-			subtile.x *= tile_data.w;
-			subtile.y *= tile_data.h;
-
-			var temp_cords = [
-				subtile.x + tile_data.w, subtile.y,
-				subtile.x, subtile.y,
-				subtile.x, subtile.y + tile_data.h,
-				subtile.x + tile_data.w, subtile.y + tile_data.h
-			];
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, tex_cord_buff);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(temp_cords), gl.STATIC_DRAW);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-			gl.uniform1f(prog.scale, this.scale);
-
-			gl.uniform3fv(prog.pos, new Float32Array([
-				tile.x * this.scale - 3.5 * this.scale,
-				-tile.y * this.scale + 3.5 * this.scale,
-				0.1,
-			]));
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, vert_buff);
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, (vert.length / 3));
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-		}
-	}
-	ent_stack.push(wall);
-	// game logic bits
+	add_tile([
+		4, 5, 20, 21, 22, 23, 6, 7,
+		12, 13, 28, 29, 30, 31, 14, 15,
+		16, 16, 16, 16, 16, 16, 16, 16,
+		16, 16, 16, 16, 16, 16, 16, 16,
+		16, 16, 16, 16, 16, 16, 16, 16,
+		16, 16, 16, 16, 16, 16, 16, 16,
+		16, 16, 16, 16, 16, 16, 16, 16,
+		16, 16, 16, 16, 16, 16, 16, 16
+	], 0.1);
 
 	render_loop();
 }
