@@ -119,6 +119,9 @@ function init() {
 		ent.target_point = {x: -0.59 + 0.6 * n, y: -0.6};
 		ent.found_target = false;
 		ent.state = 0;
+		ent.vel = 0.0;
+		ent.ol = false;
+		// ent.vel = Math.random() * 0.5;
 		ent.render = function() {
 			gl.bindTexture(gl.TEXTURE_2D, tex3);
 
@@ -154,6 +157,29 @@ function init() {
 			}
 		}
 		ent.logic = function() {
+			if (!this.ol) {
+				this.ol = false;
+			}
+
+			if (m.x < this.x + 0.5 * this.scale &&
+				m.x > this.x - 0.5 * this.scale &&
+				m.y < this.y + 0.75 * this.scale &&
+				m.y > this.y - 0.5 * this.scale) {
+				if (!this.ol) {
+					this.ol = true;
+					this.vel += 0.03;
+				}
+			}
+			else {
+				this.ol = false;
+			}
+
+			this.vel += -0.005;
+			if (this.y + this.vel < -0.61) {
+				this.vel += -this.vel;
+			}
+			this.y += this.vel;
+
 			switch(game_stage){
 				case 0:
 					if (this.time_stamp != new Date().getSeconds()) {
@@ -218,9 +244,9 @@ function init() {
 	add_tile([
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 34, 1, 1, 1, 1, 1,
+		1, 1, 42, 1, 1, 32, 33, 1,
+		1, 1, 50, 1, 1, 40, 41, 1,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		9, 9, 9, 9, 9, 9, 9, 9,
 		9, 9, 9, 9, 9, 9, 9, 9
