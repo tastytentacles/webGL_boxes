@@ -1,10 +1,15 @@
 var m = {
 	x: 0.0,
 	y: 0.0,
-	down: false
+	down: false,
+	click: false
 };
 
-// var mouse_mem = false;
+function pass_for_click() {
+	if (m.down && !click) {
+		
+	}
+}
 
 function io_init(c_) {
 	c_.addEventListener('mousemove', function(evt) {
