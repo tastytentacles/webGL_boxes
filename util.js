@@ -210,3 +210,8 @@ function grep_shader(gl, id) {
 
 	return shad_shad;
 }
+
+function flush_stack() {
+	ent_stack = [];
+	stack_inti();
+}
