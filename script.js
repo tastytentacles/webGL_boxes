@@ -161,7 +161,7 @@ function init() {
 	prog.col = gl.getUniformLocation(prog, "col");
 
 	tex3 = gl.createTexture();
-	new_img(tex3, "/ast/tile.gif");	
+	new_img(tex3, "./ast/tile.gif");	
 
 	//enable alpha blending
 	gl.enable(gl.BLEND);
