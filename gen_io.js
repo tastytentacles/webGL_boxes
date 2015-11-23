@@ -6,8 +6,13 @@ var m = {
 
 function io_init(c_) {
 	c_.addEventListener('mousemove', function(evt) {
-		m.x = evt.clientX / 256 - 1;
-		m.y = 1 - evt.clientY / 256;
+		if (c.width < c.height) {
+			m.x = evt.clientX / (c.width / 2) - 1;
+			m.y = 1 - (evt.clientY + (c.height / 2 - c.width / 2)) / (c.height / 2);
+		} else {
+			m.x = (evt.clientX + (c.width / 2 - c.height / 2)) / (c.width / 2) - 1;
+			m.y = 1 - evt.clientY / (c.height / 2);
+		}
 	});
 
 	c_.addEventListener('mousedown', function(evt) {m.down = true;});
